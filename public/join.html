@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会議参加ページ</title>
+</head>
+<body>
+    <h1>会議参加ページ</h1>
+    <div id="meetingInfo"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io(window.location.origin);
+        const invitationCode = window.location.pathname.split('/').pop();
+
+        socket.emit('joinMeeting', { invitationCode });
+
+        socket.on('meetingInfo', (data) => {
+            const meetingInfo = document.getElementById('meetingInfo');
+            const meetingUrl = `${window.location.origin}/meetcs27/${data.meetingId}?user=${data.invitedUid}`;
+            meetingInfo.innerHTML = `
+                <p>会議日時: ${data.meetingTime}</p>
+                <p>会議URL: ${meetingUrl}</p>
+                <p>作成者UID: ${data.creatorUid}</p>
+                <p>招待者UID: ${data.invitedUid}</p>
+            `;
+
+            scheduleMeeting(data.meetingTime, meetingUrl);
+        });
+
+        function scheduleMeeting(meetingTime, meetingUrl) {
+            const meetingDate = new Date(meetingTime);
+            const now = new Date();
+            const timeUntilMeeting = meetingDate - now;
+
+            if (timeUntilMeeting > 0) {
+                setTimeout(() => {
+                    window.open(meetingUrl, '_blank');
+                }, timeUntilMeeting);
+            } else if (timeUntilMeeting > -3600000) { // 1時間以内なら即時接続
+                window.open(meetingUrl, '_blank');
+            } else {
+                alert('この会議の開始時間は過ぎています。');
+            }
+        }
+    </script>
+</body>
+</html>

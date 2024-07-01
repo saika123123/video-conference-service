@@ -9,9 +9,15 @@
     <h1>高齢者向けビデオ会議サービス</h1>
     <div>
         <h2>会議を作成</h2>
+        <input type="text" id="creatorUid" placeholder="あなたのUID">
+        <input type="text" id="invitedUid" placeholder="招待する人のUID">
         <input type="datetime-local" id="meetingTime">
-        <input type="text" id="participantUid" placeholder="参加者のUID">
         <button onclick="createMeeting()">会議を作成</button>
+    </div>
+    <div>
+        <h2>会議に参加</h2>
+        <input type="text" id="invitationCode" placeholder="招待コードを入力">
+        <button onclick="joinMeeting()">会議に参加</button>
     </div>
     <div id="meetingInfo"></div>
 
