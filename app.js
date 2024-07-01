@@ -16,35 +16,37 @@ io.on('connection', (socket) => {
 
   socket.on('createMeeting', (data) => {
     const meetingId = crypto.randomBytes(4).toString('hex');
-    const invitationCode = crypto.randomBytes(6).toString('hex');
-    
     const meeting = {
       id: meetingId,
       time: data.meetingTime,
       creatorUid: data.creatorUid,
-      invitedUid: data.invitedUid,
-      invitationCode: invitationCode
+      participants: data.participants.map(uid => ({
+        uid,
+        invitationCode: crypto.randomBytes(6).toString('hex')
+      }))
     };
     
-    meetings.set(invitationCode, meeting);
+    meeting.participants.forEach(participant => {
+      meetings.set(participant.invitationCode, meeting);
+    });
     
     socket.emit('meetingCreated', { 
       meetingId, 
-      invitationCode,
       meetingTime: data.meetingTime,
       creatorUid: data.creatorUid,
-      invitedUid: data.invitedUid
+      participants: meeting.participants
     });
   });
 
   socket.on('joinMeeting', (data) => {
     const meeting = meetings.get(data.invitationCode);
     if (meeting) {
+      const participant = meeting.participants.find(p => p.invitationCode === data.invitationCode);
       socket.emit('meetingInfo', {
         meetingId: meeting.id,
         meetingTime: meeting.time,
         creatorUid: meeting.creatorUid,
-        invitedUid: meeting.invitedUid
+        participantUid: participant.uid
       });
     } else {
       socket.emit('error', { message: '会議が見つかりません' });
@@ -67,14 +69,12 @@ app.get('/join/:invitationCode', (req, res) => {
   }
 });
 
-// ミートCS27サービスへのリダイレクト
 app.get('/meetcs27/:meetingId', (req, res) => {
   const meetingId = req.params.meetingId;
   const user = req.query.user;
   res.redirect(`https://wsapp.cs.kobe-u.ac.jp/meetcs27/${meetingId}?user=${user}`);
 });
 
-// 404エラーハンドリング（他のルートの後に配置）
 app.use((req, res, next) => {
   res.status(404).send('ページが見つかりません。');
 });

@@ -10,7 +10,10 @@
     <div>
         <h2>会議を作成</h2>
         <input type="text" id="creatorUid" placeholder="あなたのUID">
-        <input type="text" id="invitedUid" placeholder="招待する人のUID">
+        <div id="participantInputs">
+            <input type="text" class="participantUid" placeholder="招待する人のUID">
+        </div>
+        <button onclick="addParticipantInput()">参加者を追加</button>
         <input type="datetime-local" id="meetingTime">
         <button onclick="createMeeting()">会議を作成</button>
     </div>

@@ -1,16 +1,26 @@
 const socket = io(window.location.origin);
 
+function addParticipantInput() {
+    const participantInputs = document.getElementById('participantInputs');
+    const newInput = document.createElement('input');
+    newInput.type = 'text';
+    newInput.className = 'participantUid';
+    newInput.placeholder = '招待する人のUID';
+    participantInputs.appendChild(newInput);
+}
+
 function createMeeting() {
     const creatorUid = document.getElementById('creatorUid').value;
-    const invitedUid = document.getElementById('invitedUid').value;
+    const participantInputs = document.getElementsByClassName('participantUid');
+    const participants = Array.from(participantInputs).map(input => input.value).filter(uid => uid.trim() !== '');
     const meetingTime = document.getElementById('meetingTime').value;
 
-    if (!creatorUid || !invitedUid || !meetingTime) {
+    if (!creatorUid || participants.length === 0 || !meetingTime) {
         alert('全ての項目を入力してください。');
         return;
     }
 
-    socket.emit('createMeeting', { creatorUid, invitedUid, meetingTime });
+    socket.emit('createMeeting', { creatorUid, participants, meetingTime });
 }
 
 function joinMeeting() {
@@ -24,21 +34,25 @@ function joinMeeting() {
 
 socket.on('meetingCreated', (data) => {
     const meetingInfo = document.getElementById('meetingInfo');
-    const joinUrl = `${window.location.origin}/join/${data.invitationCode}`;
-    const meetingUrl = `${window.location.origin}/meetcs27/${data.meetingId}?user=${data.creatorUid}`;
+    let participantsHtml = data.participants.map(p => `
+        <p>参加者UID: ${p.uid}</p>
+        <p>招待コード: ${p.invitationCode}</p>
+        <p>参加URL: <a href="${window.location.origin}/join/${p.invitationCode}" target="_blank">${window.location.origin}/join/${p.invitationCode}</a></p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${window.location.origin}/join/${p.invitationCode}`)}" alt="QR Code">
+    `).join('<hr>');
+
     meetingInfo.innerHTML = `
         <h3>会議が作成されました</h3>
         <p>会議ID: ${data.meetingId}</p>
-        <p>招待コード: ${data.invitationCode}</p>
         <p>会議時間: ${data.meetingTime}</p>
         <p>作成者UID: ${data.creatorUid}</p>
-        <p>招待者UID: ${data.invitedUid}</p>
-        <p>参加URL: <a href="${joinUrl}" target="_blank">${joinUrl}</a></p>
-        <p>招待コードを招待者に送信してください。</p>
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}" alt="QR Code">
+        <h4>参加者情報:</h4>
+        ${participantsHtml}
+        <p>各参加者に対応する招待コードを送信してください。</p>
     `;
 
-    scheduleMeeting(data.meetingTime, meetingUrl);
+    const creatorMeetingUrl = `${window.location.origin}/meetcs27/${data.meetingId}?user=${data.creatorUid}`;
+    scheduleMeeting(data.meetingTime, creatorMeetingUrl);
 });
 
 function scheduleMeeting(meetingTime, meetingUrl) {
