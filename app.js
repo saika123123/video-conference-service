@@ -67,6 +67,18 @@ app.get('/join/:invitationCode', (req, res) => {
   }
 });
 
+// ミートCS27サービスへのリダイレクト
+app.get('/meetcs27/:meetingId', (req, res) => {
+  const meetingId = req.params.meetingId;
+  const user = req.query.user;
+  res.redirect(`https://wsapp.cs.kobe-u.ac.jp/meetcs27/${meetingId}?user=${user}`);
+});
+
+// 404エラーハンドリング（他のルートの後に配置）
+app.use((req, res, next) => {
+  res.status(404).send('ページが見つかりません。');
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
