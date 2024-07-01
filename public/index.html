@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高齢者向けビデオ会議サービス</title>
+</head>
+<body>
+    <h1>高齢者向けビデオ会議サービス</h1>
+    <div>
+        <h2>会議を作成</h2>
+        <input type="datetime-local" id="meetingTime">
+        <input type="text" id="participantUid" placeholder="参加者のUID">
+        <button onclick="createMeeting()">会議を作成</button>
+    </div>
+    <div id="meetingInfo"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
